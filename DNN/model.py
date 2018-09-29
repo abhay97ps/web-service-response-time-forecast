@@ -5,10 +5,12 @@ import numpy as np
 
 class DNN:
 
-    def fit(self, D_train, z_train):
+    def fit(self, D_train, z_train, k):
         # shape samples * features
-        X, Y = D_train.T
-        
+        # k values decide the split between metadata and time stamped values
+        X = D_train[:, :k]
+        Y = D_train[:, k:]
+
         # initialize parameters
         self.l0_in = X.shape[1] + Y.shape[1]
         self.l0_out = Y.shape[1]
@@ -22,14 +24,16 @@ class DNN:
         # splitting into train and validation set
         # validation set is kept as 1/5th of train set and is randomly selected
         self.D_train, self.D_validation, self.z_train, self.z_validation = train_test_split(
-            D_train, z_train, test_size=0.2, random_state=1, shuffle = True)
-        
+            D_train, z_train, test_size=0.2, random_state=1, shuffle=True)
+
         # define placeholder
-        self.x = tf.placeholder('float', [None, D_train.shape[1]])
-        self.y = tf.placeholder('float', [None, z_train.shape[1]])
+        self.d = tf.placeholder('float', [None, D_train.shape[1]])
+        self.z = tf.placeholder('float', [None, z_train.shape[1]])
 
     def network_model(self, data):
-        X, Y = data  # divide into data and metadata
+        # divide into data and metadata
+        X = data[:, :k]
+        Y = data[:, k:]
 
         # Layer 1 computes time dependent jerks
         l0_input = tf.concat([X, Y], axis=0)
@@ -69,15 +73,44 @@ class DNN:
 
     def train(self):
         # get the prediction
-        prediction = self.network_model(self.x)
+        prediction = self.network_model(self.d)
         # cost function
-        cost = tf.losses.mean_squared_error(labels=self.y, predictions = prediction)
+        cost = tf.losses.mean_squared_error(
+            labels=self.z, predictions=prediction)
         # regularization
-        #
+        # yet to be added and make changes accordingly
         # train using adam optimizer
         optimizer = tf.train.AdamOptimizer().minimize(cost)
-
+        # initialize saver
+        saver = tf.train.Saver()
         # session
         with tf.Session() as sess:
             # initializing the variables
-            sess.run()
+            sess.run(tf.global_variables_initializer())
+            # initial validation error
+            error = sess.run(cost, feed_dict={
+                             self.d: self.D_validation, self.z: self.z_validation})
+
+            epochs = 5
+            for _ in range(epochs):
+                # online training
+                for i in range(self.D_train.shape[0]):
+                    epoch_d = self.D_train[i][np.newaxis].T
+                    epoch_z = self.z_train[i][np.newaxis].T
+                    # training step
+                    sess.run(optimizer, feed_dict={
+                             self.d: epoch_d, self.z: epoch_z})
+                error = sess.run(cost, feed_dict={
+                                 self.d: self.D_validation, self.z: self.z_validation})
+                print('Epoch error: ', error)
+            # save the trained model
+            saver.save(sess, '/dnn_model.ckpt')
+
+    def predict(self, D_test):
+        prediction = self.network_model(self.d)
+        # initialzing saver
+        saver = tf.train.Saver()
+        with tf.Session() as sess:
+            saver.restore(sess, '/dnn_model.ckpt')
+            output = sess.run(prediction, feed_dict={self.d: D_test})
+        return output
