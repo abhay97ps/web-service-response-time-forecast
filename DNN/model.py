@@ -31,6 +31,9 @@ class DNN:
         self.d = tf.placeholder('float', [None, D_train.shape[1]])
         self.z = tf.placeholder('float', [None, z_train.shape[1]])
 
+        # train the model
+        self.train()
+
     def network_model(self, data):
         # divide into data and metadata
         X = data[:, :self.k]
