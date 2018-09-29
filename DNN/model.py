@@ -33,8 +33,8 @@ class DNN:
 
     def network_model(self, data):
         # divide into data and metadata
-        X = data[:, :k]
-        Y = data[:, k:]
+        X = data[:, :self.k]
+        Y = data[:, self.k:]
 
         # Layer 1 computes time dependent jerks
         l0_input = tf.concat([X, Y], axis=0)
