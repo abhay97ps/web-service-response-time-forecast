@@ -93,7 +93,7 @@ class DNN:
             # initial validation error
             error = sess.run(cost, feed_dict={
                              self.d: self.D_validation, self.z: self.z_validation})
-
+            print('Initial Error: ', error)
             epochs = 5
             batch_size = 100
             num_batches = int(self.D_train.shape[0] / batch_size)
@@ -109,13 +109,13 @@ class DNN:
                                  self.d: self.D_validation, self.z: self.z_validation})
                 print('Epoch error: ', error)
             # save the trained model
-            saver.save(sess, '/dnn_model.ckpt')
+            saver.save(sess, '/tmp/dnn_model.ckpt')
 
     def predict(self, D_test):
-        prediction = self.network_model(self.d)
+        pred = self.network_model(self.d)
         # initialzing saver
         saver = tf.train.Saver()
         with tf.Session() as sess:
-            saver.restore(sess, '/dnn_model.ckpt')
-            output = sess.run(prediction, feed_dict={self.d: D_test})
+            saver.restore(sess, '/tmp/dnn_model.ckpt')
+            output = sess.run(pred, feed_dict={self.d: D_test})
         return output
