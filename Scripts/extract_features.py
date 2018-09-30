@@ -59,7 +59,7 @@ with open("./../Input/training_data.csv", 'w') as f:
                 for record in records_per_service.get(service).get(time):
                     usr_id = record.user
                     past_data = fetch_past_records(service, time, usr_id)
-                    if len(past_data.split(",")) == lookback and past_data != "":
+                    if len(past_data.split(",")) == lookback+1 and past_data != "":
                         f.write(str(record.thput)+"," +
                                 past_data+str(record.rtime)+"\n")
                     else:

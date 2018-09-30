@@ -1,6 +1,7 @@
 from model import DNN
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 
@@ -17,11 +18,23 @@ def fetch_data():
 
 # intitializing the data
 X_train, y_train, k = fetch_data()
+
 # split the data into train and test randomly
 X_train, X_test, y_train, y_test = train_test_split(
     X_train, y_train, test_size=0.2)
+
+# scaling input features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# making target array a column vector
+y_train = y_train.reshape((y_train.shape[0], 1))
+y_test = y_test.reshape((y_test.shape[0], 1))
+
 print(X_train.shape, y_train.shape, X_test.shape, y_test.shape)
 print('Starting')
+
 # call our model
 regr = DNN()
 regr.fit(X_train, y_train, k)

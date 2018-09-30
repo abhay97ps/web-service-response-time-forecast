@@ -38,9 +38,8 @@ class DNN:
         # divide into data and metadata
         X = data[:, :self.k]
         Y = data[:, self.k:]
-
         # Layer 1 computes time dependent jerks
-        l0_input = tf.concat([X, Y], axis=0)
+        l0_input = tf.concat([X, Y], axis=1)
         l0 = {
             'weights': tf.Variable(tf.random_uniform([self.l0_in, self.l0_out])),
             'biases': tf.Variable(tf.random_uniform([self.l0_out]))
@@ -56,7 +55,7 @@ class DNN:
         l1_output = tf.add(tf.matmul(l1_input, l1['weights']), l1['biases'])
 
         # target prediction using data and time dependent jerks
-        l2_input = tf.concat([Y, l0_output], axis=0)
+        l2_input = tf.concat([Y, l0_output], axis=1)
         l2 = {
             'weights': tf.Variable(tf.random_uniform([self.l2_in, self.l2_out])),
             'biases': tf.Variable(tf.random_uniform([self.l2_out]))
@@ -64,7 +63,7 @@ class DNN:
         l2_output = tf.add(tf.matmul(l2_input, l2['weights']), l2['biases'])
 
         # to exploit the depency between the two predictions
-        l3_input = tf.concat([l1_output, l2_output], axis=0)
+        l3_input = tf.concat([l1_output, l2_output], axis=1)
         l3 = {
             'weights': tf.Variable(tf.random_uniform([self.l3_in, self.l3_out])),
             'biases': tf.Variable(tf.random_uniform([self.l3_out]))
@@ -96,11 +95,13 @@ class DNN:
                              self.d: self.D_validation, self.z: self.z_validation})
 
             epochs = 5
+            batch_size = 100
+            num_batches = int(self.D_train.shape[0] / batch_size)
             for _ in range(epochs):
                 # online training
-                for i in range(self.D_train.shape[0]):
-                    epoch_d = self.D_train[i][np.newaxis].T
-                    epoch_z = self.z_train[i][np.newaxis].T
+                for i in range(0, num_batches, batch_size):
+                    epoch_d = self.D_train[i:i+batch_size, :]
+                    epoch_z = self.z_train[i:i+batch_size, :]
                     # training step
                     sess.run(optimizer, feed_dict={
                              self.d: epoch_d, self.z: epoch_z})
