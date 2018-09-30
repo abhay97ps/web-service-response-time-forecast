@@ -5,6 +5,11 @@ from sklearn.model_selection import train_test_split
 def fetch_data():
     # to be coded or imported
     X_train, y_train, k = [], [], 0
+	with open("training_data.csv",'w') as f:
+		for line in f:
+			data = map(float(line.strip().split(","))
+			y.train.append(data[-1])
+			X.train.append(data[:-1])
     return X_train, y_train, k
 
 
