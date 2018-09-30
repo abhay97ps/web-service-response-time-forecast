@@ -20,13 +20,13 @@ class record:
 
 def fetch_past_records(service, time, usr_id):
     res = ""
-    for count in range(time-lookback, time):
-        try:
+    try:
+        for count in range(time-lookback, time):
             for record in records_per_service.get(service).get(count):
                 if record.user == usr_id:
                     res += str(record.rtime) + ","
-        except:
-            return ""
+    except:
+        return ""
     return res
 
 
@@ -53,15 +53,16 @@ with open(Path + "tpdata.txt", 'r') as t:
                 item.set_thput(data[3])
 
 with open("./../Input/training_data.csv", 'w') as f:
-	for service in records_per_service.keys():
-		for time in range(time_low+lookback, time_high+1):
-			try:
-				for record in records_per_service.get(service).get(time):
-					usr_id = record.user
-					past_data = fetch_past_records(service, time, usr_id)
-					if past_data != "":
-						f.write(str(record.thput)+"," +
-							past_data+str(record.rtime)+"\n")
-			except:
-				pass
-		
+    for service in records_per_service.keys():
+        for time in range(time_low+lookback, time_high+1):
+            try:
+                for record in records_per_service.get(service).get(time):
+                    usr_id = record.user
+                    past_data = fetch_past_records(service, time, usr_id)
+                    if len(past_data.split(",")) == lookback and past_data != "":
+                        f.write(str(record.thput)+"," +
+                                past_data+str(record.rtime)+"\n")
+                    else:
+                        print("ghapla")
+            except:
+                pass

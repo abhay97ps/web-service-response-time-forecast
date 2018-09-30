@@ -7,11 +7,11 @@ class DNN:
 
     def fit(self, D_train, z_train, k):
         # shape samples * features
-        self.k = k
-        # k values decide the split between metadata and time stamped values
         X = D_train[:, :k]
         Y = D_train[:, k:]
-        
+        # k values decide the split between metadata and time stamped values
+        self.k = k
+
         # initialize parameters
         self.l0_in = X.shape[1] + Y.shape[1]
         self.l0_out = Y.shape[1]
