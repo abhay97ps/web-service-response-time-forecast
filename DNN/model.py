@@ -109,14 +109,17 @@ class DNN:
                                  self.d: self.D_validation, self.z: self.z_validation})
                 print('Epoch error: ', error)
             # save the trained model
-            saver.save(sess, './dnn_model')
+            saver.save(sess, './dnn_model.ckpt')
 
     def predict(self, D_test):
-        #pred = self.network_model(self.d)
+        prediction = self.network_model(self.d)
+        saver = tf.train.Saver()
         # initialzing saver
         with tf.Session() as sess:
-            saver = tf.train.import_meta_graph('dnn_model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('./'))
-            prediction = self.network_model(self.d)
+            sess.run(tf.global_variables_initializer())
+            saver.restore(sess,"./dnn_model.ckpt")
+            #saver = tf.train.import_meta_graph('dnn_model.meta')
+            #saver.restore(sess, tf.train.latest_checkpoint('./'))
+            #prediction = self.network_model(self.d)
             output = sess.run(prediction, feed_dict={self.d: D_test})
         return output

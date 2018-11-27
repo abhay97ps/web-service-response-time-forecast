@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 
-Path = "./../wsdream/dataset2/"
+Path = "./../"
 #Path = "./../../dataset/"
 lookback = 5
 time_low = 0
@@ -29,9 +29,10 @@ def fetch_past_records(service, time, usr_id):
         return ""
     return res
 
-
 with open(Path + "rtdata.txt", 'r') as r:
-    for line in r:
+    for indices,line in enumerate(r):
+	if indices % 10000 == 0:
+		print ('.')
         data = list(map(float, line.strip().split(" ")))
         if data[1] in records_per_service.keys():
             temp_service = records_per_service.get(data[1])
@@ -46,13 +47,15 @@ with open(Path + "rtdata.txt", 'r') as r:
                 data[2]: [record(data[0], data[3])]}
 
 with open(Path + "tpdata.txt", 'r') as t:
-    for line in t:
+    for indices,line in enumerate(t):
+	if indices % 10000 == 0:
+		print ('&')
         data = list(map(float, line.strip().split(" ")))
         for item in records_per_service.get(data[1]).get(data[2]):
             if item.user == data[0]:
                 item.set_thput(data[3])
-
-with open("./../Input/training_data.csv", 'w') as f:
+print ("DONE Loading")
+with open("./../Input/training_data_gaf.csv", 'w') as f:
     for service in records_per_service.keys():
         for time in range(time_low+lookback, time_high+1):
             try:
@@ -60,7 +63,7 @@ with open("./../Input/training_data.csv", 'w') as f:
                     usr_id = record.user
                     past_data = fetch_past_records(service, time, usr_id)
                     if len(past_data.split(",")) == lookback+1 and past_data != "":
-                        f.write(str(record.thput)+"," +
+                        f.write(str(service)+','+str(record.thput)+"," +
                                 past_data+str(record.rtime)+"\n")
                     else:
                         print("ghapla")
